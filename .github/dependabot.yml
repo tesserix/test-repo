@@ -1,0 +1,32 @@
+version: 2
+updates:
+  # Keep the CI workflows' actions current.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+
+  # Ecosystems below only activate when their manifest exists in the repo;
+  # Dependabot quietly ignores the ones that don't apply.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
