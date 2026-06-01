@@ -1,0 +1,8 @@
+# Code owners — every pull request requests review from these owners.
+# Replace the placeholder below with the real GitHub team(s) or user(s),
+# e.g. "*  @tesserix/platform" or "*  @your-handle".
+#
+# Until edited, this acts as documentation only (an unknown team does not
+# block merges, it just surfaces a warning in the PR's reviewers panel).
+
+*  @tesserix/maintainers
