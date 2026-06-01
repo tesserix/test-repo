@@ -1,0 +1,37 @@
+# DevAI platform marker — managed by the Repos onboarding flow.
+# Presence of this file on the default branch enrols the repo in
+# DevAI. Edit `onboarding.description` for a one-line summary; the
+# `spec` block tunes the default blueprint and Workflows lanes.
+apiVersion: devai.tesserix.app/v1alpha1
+kind: PlatformConfig
+metadata:
+  name: devai
+onboarding:
+  version: 1
+  onboardedAt: '2026-06-01T13:01:25.145596+00:00'
+  onboardedBy: samyak.rout@gmail.com
+  defaultBaseBranch: main
+  description: ''
+spec:
+  defaultBlueprint: default
+  lanes:
+    queued:
+    - queued
+    - todo
+    - backlog
+    in_progress:
+    - in-progress
+    - wip
+    - doing
+    review:
+    - review
+    - in-review
+    deployed:
+    - deployed
+    - staging
+    - in-staging
+    shipped:
+    - shipped
+    - released
+    - production
+  allowedSpecialisations: []
