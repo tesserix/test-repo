@@ -1,0 +1,41 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Environments / secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+.next/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Go
+bin/
+vendor/
+
+# Build artifacts
+*.tmp
