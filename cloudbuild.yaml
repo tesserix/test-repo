@@ -1,0 +1,70 @@
+# Google Cloud Build configuration for Tesserix Petstore
+# This file defines the CI/CD pipeline for building and pushing container images
+
+steps:
+  # Install dependencies and run tests
+  - name: 'node:20-alpine'
+    entrypoint: 'npm'
+    args: ['ci']
+    id: 'install-deps'
+
+  # Run linting
+  - name: 'node:20-alpine'
+    entrypoint: 'npm'
+    args: ['run', 'lint']
+    id: 'lint'
+    waitFor: ['install-deps']
+
+  # Run tests
+  - name: 'node:20-alpine'
+    entrypoint: 'npm'
+    args: ['test']
+    id: 'test'
+    waitFor: ['install-deps']
+
+  # Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/petstore:$SHORT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/petstore:latest',
+      '.'
+    ]
+    id: 'build-image'
+    waitFor: ['lint', 'test']
+
+  # Push Docker image with SHA tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/petstore:$SHORT_SHA']
+    id: 'push-sha-tag'
+    waitFor: ['build-image']
+
+  # Push Docker image with latest tag (only on main branch)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/petstore:latest']
+    id: 'push-latest-tag'
+    waitFor: ['build-image']
+
+# Configure image pushes to Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/petstore:$SHORT_SHA'
+  - 'gcr.io/$PROJECT_ID/petstore:latest'
+
+# Build options
+options:
+  # Use high-performance machine type for faster builds
+  machineType: 'E2_HIGHCPU_8'
+  
+  # Set disk size for builds with many dependencies
+  diskSizeGb: 50
+  
+  # Use substitution variables
+  substitution_option: 'ALLOW_LOOSE'
+
+# Environment variables available during build
+substitutions:
+  _SERVICE_NAME: 'petstore'
+  _DEPLOY_REGION: 'us-central1'
+
+# Timeout for the entire build (10 minutes)
+timeout: '600s'
