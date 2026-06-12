@@ -48,7 +48,6 @@ describe("Header", () => {
 
   it("keeps the mobile menu closed by default", () => {
     render(<Header />);
-    expect(screen.queryByText("Open menu")).not.toBeNull;
     const toggle = screen.getByRole("button", { name: "Open menu" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(document.getElementById("mobile-menu")).not.toBeInTheDocument();
