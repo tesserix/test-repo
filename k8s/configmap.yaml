@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petstore-config
+  namespace: petstore
+  labels:
+    app.kubernetes.io/name: petstore
+    app.kubernetes.io/instance: petstore
+    app.kubernetes.io/component: config
+data:
+  NEXT_PUBLIC_API_URL: "https://petstore.tesserix.dev/api"
+  NODE_ENV: "production"
+  # Add other non-sensitive configuration values here
+  LOG_LEVEL: "info"
+  MAX_REQUEST_SIZE: "10mb"
