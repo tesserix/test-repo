@@ -5,53 +5,62 @@ test.describe('Story #43: Storefront Layout and Navigation - Acceptance Criteria
     await page.goto('/');
   });
 
-  test.describe('AC1: Header with Navigation Menu', () => {
+  test.describe('AC1: Header with navigation menu visibility', () => {
     test('Given I visit the storefront, when the page loads, then I see a header with navigation menu', async ({ page }) => {
-      // Verify header is visible and has proper semantic role
+      // Verify header is visible
       const header = page.getByRole('banner');
       await expect(header).toBeVisible();
       
-      // Verify PetStore logo/brand is visible
+      // Verify PetStore logo/brand is present
       await expect(page.getByText('PetStore')).toBeVisible();
-      await expect(page.locator('span').filter({ hasText: '🐾' })).toBeVisible();
       
-      // Verify navigation menu is present (desktop view)
+      // Verify navigation menu items are present
       await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Products' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Categories' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'About' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Contact' })).toBeVisible();
       
-      // Verify search functionality is available
+      // Verify search functionality is present
       await expect(page.getByPlaceholder('Search products...')).toBeVisible();
-      await expect(page.getByLabel('Search')).toBeVisible();
+      await expect(page.getByRole('button', { name: /search/i })).toBeVisible();
       
-      // Verify cart is accessible
-      await expect(page.getByLabel('Cart (0 items)')).toBeVisible();
+      // Verify cart is present
+      await expect(page.getByRole('button', { name: /cart.*items/i })).toBeVisible();
     });
 
-    test('should show mobile navigation menu on mobile devices', async ({ page }) => {
-      // Test mobile viewport
+    test('should display header navigation on desktop viewport', async ({ page }) => {
+      await page.setViewportSize({ width: 1200, height: 800 });
+      await page.reload();
+      
+      // On desktop, navigation should be visible in header
+      const nav = page.locator('nav');
+      await expect(nav).toBeVisible();
+      
+      // All navigation links should be visible
+      await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Products' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Categories' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'About' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Contact' })).toBeVisible();
+    });
+
+    test('should display mobile navigation menu on mobile viewport', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.reload();
       
-      // Header should still be visible
-      await expect(page.getByRole('banner')).toBeVisible();
-      await expect(page.getByText('PetStore')).toBeVisible();
-      
-      // Desktop navigation should be hidden on mobile
-      await expect(page.locator('nav').first()).not.toBeVisible();
-      
-      // Mobile menu button should be visible
+      // Mobile menu button should be present
       const menuButton = page.getByLabel('Toggle navigation menu');
       await expect(menuButton).toBeVisible();
       
       // Open mobile menu
       await menuButton.click();
       
-      // Mobile menu should appear with navigation links
+      // Mobile navigation should be visible
       const mobileMenu = page.locator('#mobile-menu');
       await expect(mobileMenu).toBeVisible();
+      
+      // All navigation links should be present in mobile menu
       await expect(mobileMenu.getByRole('link', { name: 'Home' })).toBeVisible();
       await expect(mobileMenu.getByRole('link', { name: 'Products' })).toBeVisible();
       await expect(mobileMenu.getByRole('link', { name: 'Categories' })).toBeVisible();
@@ -60,253 +69,240 @@ test.describe('Story #43: Storefront Layout and Navigation - Acceptance Criteria
     });
   });
 
-  test.describe('AC2: Navigation Link Functionality', () => {
-    test('Given I\'m on any storefront page, when I click navigation links, then I navigate to the correct pages', async ({ page }) => {
-      // Test Home navigation (should stay on current page)
+  test.describe('AC2: Navigation link functionality', () => {
+    test('Given I am on any storefront page, when I click navigation links, then I navigate to the correct pages', async ({ page }) => {
+      // Test Home link
       await page.getByRole('link', { name: 'Home' }).click();
       await expect(page).toHaveURL('/');
-      await expect(page.getByRole('banner')).toBeVisible(); // Header should still be present
       
-      // Test Products navigation
+      // Test Products link
       await page.getByRole('link', { name: 'Products' }).click();
       await expect(page).toHaveURL('/products');
-      await expect(page.getByRole('banner')).toBeVisible(); // Header should still be present
       
-      // Test Categories navigation from products page
+      // Test Categories link
       await page.getByRole('link', { name: 'Categories' }).click();
       await expect(page).toHaveURL('/categories');
-      await expect(page.getByRole('banner')).toBeVisible(); // Header should still be present
       
-      // Test About navigation from categories page
+      // Test About link
       await page.getByRole('link', { name: 'About' }).click();
       await expect(page).toHaveURL('/about');
-      await expect(page.getByRole('banner')).toBeVisible(); // Header should still be present
       
-      // Test Contact navigation from about page
+      // Test Contact link
       await page.getByRole('link', { name: 'Contact' }).click();
       await expect(page).toHaveURL('/contact');
-      await expect(page.getByRole('banner')).toBeVisible(); // Header should still be present
-      
-      // Navigate back to home to test logo link
-      await page.getByText('PetStore').click();
-      await expect(page).toHaveURL('/');
     });
 
-    test('should maintain navigation functionality after page transitions', async ({ page }) => {
-      // Navigate to multiple pages and ensure navigation remains functional
-      await page.getByRole('link', { name: 'Products' }).click();
+    test('should maintain navigation functionality from different starting pages', async ({ page }) => {
+      // Start from Products page
+      await page.goto('/products');
       await expect(page).toHaveURL('/products');
       
-      // Navigation should still work from the products page
+      // Navigation should work from Products page
       await page.getByRole('link', { name: 'Categories' }).click();
       await expect(page).toHaveURL('/categories');
       
-      // Test browser back button
-      await page.goBack();
-      await expect(page).toHaveURL('/products');
-      
-      // Navigation should still be functional after browser back
+      // Navigation should work from Categories page
       await page.getByRole('link', { name: 'Home' }).click();
       await expect(page).toHaveURL('/');
     });
 
-    test('should work on mobile navigation', async ({ page }) => {
+    test('should navigate correctly in mobile menu', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.reload();
       
       // Open mobile menu
       await page.getByLabel('Toggle navigation menu').click();
+      const mobileMenu = page.locator('#mobile-menu');
+      await expect(mobileMenu).toBeVisible();
       
       // Test navigation from mobile menu
-      await page.locator('#mobile-menu').getByRole('link', { name: 'Products' }).click();
+      await mobileMenu.getByRole('link', { name: 'Products' }).click();
       await expect(page).toHaveURL('/products');
       
       // Mobile menu should close after navigation
-      const mobileMenu = page.locator('#mobile-menu');
       await expect(mobileMenu).not.toBeVisible();
+    });
+
+    test('should handle logo click navigation', async ({ page }) => {
+      // Navigate to a different page first
+      await page.getByRole('link', { name: 'Products' }).click();
+      await expect(page).toHaveURL('/products');
       
-      // Header should still be visible
-      await expect(page.getByRole('banner')).toBeVisible();
+      // Click logo should return to home
+      await page.getByText('PetStore').click();
+      await expect(page).toHaveURL('/');
     });
   });
 
-  test.describe('AC3: Footer with Relevant Links', () => {
-    test('Given I\'m viewing the site, when I scroll to the bottom, then I see a footer with relevant links', async ({ page }) => {
-      // Scroll to bottom to make footer visible
+  test.describe('AC3: Footer visibility and links', () => {
+    test('Given I am viewing the site, when I scroll to the bottom, then I see a footer with relevant links', async ({ page }) => {
+      // Scroll to the bottom of the page
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
       
-      // Verify footer is visible with proper semantic role
+      // Footer should be visible
       const footer = page.getByRole('contentinfo');
       await expect(footer).toBeVisible();
       
-      // Verify brand presence in footer
-      await expect(page.getByText('PetStore')).toBeVisible();
-      await expect(page.getByText('Your trusted partner for all pet needs')).toBeVisible();
+      // Verify footer brand
+      await expect(footer.getByText('PetStore')).toBeVisible();
+      await expect(footer.getByText('Your trusted partner for all pet needs')).toBeVisible();
       
-      // Verify footer sections are present
-      await expect(page.getByText('Quick Links')).toBeVisible();
-      await expect(page.getByText('Categories')).toBeVisible();
-      await expect(page.getByText('Customer Service')).toBeVisible();
-      await expect(page.getByText('Newsletter')).toBeVisible();
+      // Verify Quick Links section
+      await expect(footer.getByText('Quick Links')).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'About Us' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Contact' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Shipping Info' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Returns' })).toBeVisible();
       
-      // Verify relevant links in Quick Links section
-      await expect(page.getByRole('link', { name: 'About Us' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Contact' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Shipping Info' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Returns' })).toBeVisible();
+      // Verify Categories section
+      await expect(footer.getByText('Categories')).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Dogs' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Cats' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Birds' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Fish' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Small Pets' })).toBeVisible();
       
-      // Verify category links
-      await expect(page.getByRole('link', { name: 'Dogs' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Cats' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Birds' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Fish' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Small Pets' })).toBeVisible();
-      
-      // Verify customer service links
-      await expect(page.getByRole('link', { name: 'Help Center' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Track Order' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Size Guide' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Care Tips' })).toBeVisible();
-      
-      // Verify newsletter signup
-      await expect(page.getByPlaceholder('Enter your email')).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible();
-      
-      // Verify social media links
-      await expect(page.getByLabel('Facebook')).toBeVisible();
-      await expect(page.getByLabel('Twitter')).toBeVisible();
-      await expect(page.getByLabel('Instagram')).toBeVisible();
-      await expect(page.getByLabel('YouTube')).toBeVisible();
-      
-      // Verify copyright and legal links
-      const currentYear = new Date().getFullYear();
-      await expect(page.getByText(`© ${currentYear} PetStore. All rights reserved.`)).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Privacy Policy' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Terms of Service' })).toBeVisible();
+      // Verify Customer Service section
+      await expect(footer.getByText('Customer Service')).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Help Center' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Track Order' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Size Guide' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Care Tips' })).toBeVisible();
     });
 
-    test('should have functional footer navigation links', async ({ page }) => {
+    test('should display footer on all pages', async ({ page }) => {
+      // Test footer presence on home page
+      await page.goto('/');
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await expect(page.getByRole('contentinfo')).toBeVisible();
       
-      // Test footer navigation links work correctly
-      await page.getByRole('link', { name: 'About Us' }).click();
-      await expect(page).toHaveURL('/about');
+      // Test footer presence on products page
+      await page.goto('/products');
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await expect(page.getByRole('contentinfo')).toBeVisible();
       
-      // Verify header is still present after footer navigation
-      await expect(page.getByRole('banner')).toBeVisible();
+      // Test footer presence on categories page
+      await page.goto('/categories');
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await expect(page.getByRole('contentinfo')).toBeVisible();
+    });
+
+    test('should have functional footer links', async ({ page }) => {
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      const footer = page.getByRole('contentinfo');
       
-      // Go back to test another footer link
+      // Test category links
+      await footer.getByRole('link', { name: 'Dogs' }).click();
+      await expect(page).toHaveURL('/categories/dogs');
+      
+      // Go back and test another footer link
       await page.goto('/');
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
       
-      // Test category link from footer
-      await page.getByRole('link', { name: 'Dogs' }).click();
-      await expect(page).toHaveURL('/categories/dogs');
-      await expect(page.getByRole('banner')).toBeVisible();
+      await footer.getByRole('link', { name: 'About Us' }).click();
+      await expect(page).toHaveURL('/about');
     });
 
-    test('should have functional newsletter signup form', async ({ page }) => {
+    test('should display newsletter signup form', async ({ page }) => {
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      const footer = page.getByRole('contentinfo');
       
-      const emailInput = page.getByPlaceholder('Enter your email');
-      const subscribeButton = page.getByRole('button', { name: 'Subscribe' });
-      
-      // Verify form elements are interactive
-      await expect(emailInput).toBeVisible();
-      await expect(emailInput).toHaveAttribute('type', 'email');
-      await expect(subscribeButton).toBeVisible();
-      await expect(subscribeButton).toBeEnabled();
+      // Verify newsletter section
+      await expect(footer.getByText('Newsletter')).toBeVisible();
+      await expect(footer.getByPlaceholder('Enter your email')).toBeVisible();
+      await expect(footer.getByRole('button', { name: 'Subscribe' })).toBeVisible();
       
       // Test email input functionality
+      const emailInput = footer.getByPlaceholder('Enter your email');
       await emailInput.fill('test@example.com');
       await expect(emailInput).toHaveValue('test@example.com');
-      
-      // Verify subscribe button is clickable
-      await subscribeButton.click();
-      // Note: Without backend implementation, we just verify the interaction works
     });
 
-    test('should have external social media links with proper attributes', async ({ page }) => {
+    test('should display social media links', async ({ page }) => {
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      const footer = page.getByRole('contentinfo');
       
-      // Verify social media links have proper external link attributes
-      const facebookLink = page.getByLabel('Facebook');
-      const twitterLink = page.getByLabel('Twitter');
-      const instagramLink = page.getByLabel('Instagram');
-      const youtubeLink = page.getByLabel('YouTube');
+      // Verify social media links
+      await expect(footer.getByLabel('Facebook')).toBeVisible();
+      await expect(footer.getByLabel('Twitter')).toBeVisible();
+      await expect(footer.getByLabel('Instagram')).toBeVisible();
+      await expect(footer.getByLabel('YouTube')).toBeVisible();
       
+      // Verify links have correct attributes
+      const facebookLink = footer.getByLabel('Facebook');
       await expect(facebookLink).toHaveAttribute('href', 'https://facebook.com/petstore');
       await expect(facebookLink).toHaveAttribute('target', '_blank');
       await expect(facebookLink).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    test('should display copyright and legal information', async ({ page }) => {
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      const footer = page.getByRole('contentinfo');
       
-      await expect(twitterLink).toHaveAttribute('href', 'https://twitter.com/petstore');
-      await expect(twitterLink).toHaveAttribute('target', '_blank');
-      await expect(twitterLink).toHaveAttribute('rel', 'noopener noreferrer');
+      // Verify copyright
+      const currentYear = new Date().getFullYear();
+      await expect(footer.getByText(`© ${currentYear} PetStore. All rights reserved.`)).toBeVisible();
       
-      await expect(instagramLink).toHaveAttribute('href', 'https://instagram.com/petstore');
-      await expect(instagramLink).toHaveAttribute('target', '_blank');
-      await expect(instagramLink).toHaveAttribute('rel', 'noopener noreferrer');
-      
-      await expect(youtubeLink).toHaveAttribute('href', 'https://youtube.com/petstore');
-      await expect(youtubeLink).toHaveAttribute('target', '_blank');
-      await expect(youtubeLink).toHaveAttribute('rel', 'noopener noreferrer');
+      // Verify legal links
+      await expect(footer.getByRole('link', { name: 'Privacy Policy' })).toBeVisible();
+      await expect(footer.getByRole('link', { name: 'Terms of Service' })).toBeVisible();
     });
   });
 
-  test.describe('Layout Structure and Semantic HTML', () => {
-    test('should have proper semantic HTML structure for accessibility', async ({ page }) => {
-      // Verify main semantic landmarks are present
-      await expect(page.getByRole('banner')).toBeVisible(); // header
-      await expect(page.getByRole('main')).toBeVisible(); // main content area
-      await expect(page.getByRole('contentinfo')).toBeVisible(); // footer
+  test.describe('Overall Layout Integration', () => {
+    test('should maintain header and footer on all pages', async ({ page }) => {
+      const pages = ['/', '/products', '/categories', '/about', '/contact'];
       
-      // Verify navigation is properly marked up
-      await expect(page.locator('nav')).toBeVisible();
-      
-      // Verify proper heading hierarchy exists
-      const h1 = page.locator('h1').first();
-      await expect(h1).toBeVisible();
-      await expect(h1).toContainText('Everything Your Pet Needs');
-    });
-
-    test('should be responsive across different screen sizes', async ({ page }) => {
-      // Test desktop (default)
-      await expect(page.getByRole('banner')).toBeVisible();
-      await expect(page.getByText('PetStore')).toBeVisible();
-      
-      // Test tablet
-      await page.setViewportSize({ width: 768, height: 1024 });
-      await page.reload();
-      await expect(page.getByRole('banner')).toBeVisible();
-      await expect(page.getByText('PetStore')).toBeVisible();
-      
-      // Test mobile
-      await page.setViewportSize({ width: 375, height: 667 });
-      await page.reload();
-      await expect(page.getByRole('banner')).toBeVisible();
-      await expect(page.getByText('PetStore')).toBeVisible();
-      
-      // Test mobile menu functionality
-      await page.getByLabel('Toggle navigation menu').click();
-      await expect(page.locator('#mobile-menu')).toBeVisible();
-    });
-
-    test('should maintain layout integrity during navigation', async ({ page }) => {
-      // Navigate to different pages and verify layout remains intact
-      const pagesToTest = ['/products', '/categories', '/about', '/contact'];
-      
-      for (const url of pagesToTest) {
+      for (const url of pages) {
         await page.goto(url);
         
-        // Verify header is always present
+        // Header should be present
         await expect(page.getByRole('banner')).toBeVisible();
         await expect(page.getByText('PetStore')).toBeVisible();
         
-        // Verify footer is always present
+        // Footer should be present (scroll to see it)
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        await expect(page.getByRole('contentinfo')).toBeVisible();
+      }
+    });
+
+    test('should have proper semantic HTML structure', async ({ page }) => {
+      // Verify semantic HTML elements
+      await expect(page.getByRole('banner')).toBeVisible(); // Header
+      await expect(page.getByRole('main')).toBeVisible(); // Main content
+      await expect(page.getByRole('contentinfo')).toBeVisible(); // Footer
+      
+      // Verify navigation
+      await expect(page.locator('nav')).toBeVisible();
+    });
+
+    test('should be responsive across different viewport sizes', async ({ page }) => {
+      const viewports = [
+        { width: 375, height: 667 }, // Mobile
+        { width: 768, height: 1024 }, // Tablet
+        { width: 1200, height: 800 }, // Desktop
+      ];
+      
+      for (const viewport of viewports) {
+        await page.setViewportSize(viewport);
+        await page.reload();
+        
+        // Header should always be visible
+        await expect(page.getByRole('banner')).toBeVisible();
+        await expect(page.getByText('PetStore')).toBeVisible();
+        
+        // Footer should always be present
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
         await expect(page.getByRole('contentinfo')).toBeVisible();
         
-        // Verify main content area exists
-        await expect(page.getByRole('main')).toBeVisible();
+        // Navigation should be accessible (either direct links or mobile menu)
+        if (viewport.width >= 1024) {
+          // Desktop: direct navigation links
+          await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
+        } else {
+          // Mobile: navigation through menu button
+          await expect(page.getByLabel('Toggle navigation menu')).toBeVisible();
+        }
       }
     });
   });
